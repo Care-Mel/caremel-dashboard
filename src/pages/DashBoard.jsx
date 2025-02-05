@@ -44,6 +44,7 @@ const Dashboard = () => {
   // Simulating API call
   const fetchData = async () => {
     const response = await axios.get("api/v1/term-and-condition");
+    console.log(response.data);
     setUsers(response.data.data);
   };
 
@@ -74,7 +75,7 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="bg-white shadow overflow-x-auto sm:rounded-lg">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -84,7 +85,18 @@ const Dashboard = () => {
                   >
                     Name
                   </th>
-
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    NRC
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    CreateAt
+                  </th>
                   <th
                     scope="col"
                     className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -99,6 +111,16 @@ const Dashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {user.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {user.NRC}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {user?.createdAt}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
