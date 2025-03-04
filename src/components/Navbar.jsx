@@ -11,8 +11,8 @@ function Navbar() {
   };
 
   const navLinks = [
-    { path: "/", name: "Home" },
-    { path: "/dashboard", name: "Dashboard" },
+    { path: "/dashboard", name: "Home" },
+    { path: "/dashboard/terms", name: "Dashboard" },
   ];
 
   return (
@@ -34,8 +34,8 @@ function Navbar() {
                 to={link.path}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                   location.pathname === link.path
-                    ? "text-blue-600 bg-blue-50"
-                    : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+                    ? "text-green-600 bg-green-50"
+                    : "text-gray-600 hover:text-green-600 hover:bg-green-50"
                 }`}
               >
                 {link.name}

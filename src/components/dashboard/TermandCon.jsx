@@ -1,14 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaTrash } from "react-icons/fa";
+import axios from "./../../api/axios";
+import { toast } from "sonner";
 import ConfirmationModal from "../ConfirmationModal";
 
-function TermandCon({ users, onDeleteUser }) {
+function TermandCon() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState(null);
 
+  const [users, setUsers] = useState([]);
+
+  // Fetch data from API
+  const fetchData = async () => {
+    const response = await axios.get("api/v1/term-and-condition");
+    // console.log("response", response);
+    setUsers(response.data.data);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const DeleteUser = async (id) => {
+    try {
+      const res = await axios.delete(`api/v1/term-and-condition/${id}`);
+      // console.log(res);
+      if (res.status === 200) {
+        toast.success("User deleted successfully");
+        fetchData();
+      } else {
+        toast.error("Failed to delete user");
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Error deleting user");
+    }
+  };
+
   const handleDelete = () => {
     if (userIdToDelete) {
-      onDeleteUser(userIdToDelete);
+      DeleteUser(userIdToDelete);
       setModalVisible(false);
       setUserIdToDelete(null);
     }
