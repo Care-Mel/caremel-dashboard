@@ -46,10 +46,10 @@ function TermandCon() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div className="px-4 py-6 sm:px-0">
+    <div className="p-5 container mx-auto">
+      <div className="sm:px-0">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
-        <div className="bg-white shadow overflow-x-auto sm:rounded-lg">
+        <div className="bg-white shadow overflow-x-auto overflow-y-hidden sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import axios from "../../api/axios";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { MdDelete } from "react-icons/md";
 import PropTypes from "prop-types";
+import ConfirmationModal from "../ConfirmationModal";
 
 const SearchBar = ({ onSearch }) => (
   <div className="relative">
@@ -38,7 +40,9 @@ const FilterDropdown = ({ options, value, onChange, label }) => (
     onChange={(e) => onChange(e.target.value)}
     className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
   >
-    <option value="">{label}</option>
+    <option value="" disabled>
+      {label}
+    </option>
     {options.map((option) => (
       <option key={option} value={option}>
         {option}
@@ -54,8 +58,8 @@ FilterDropdown.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-const BookingCard = ({ booking }) => (
-  <div className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100">
+const BookingCard = ({ booking, handleDelete }) => (
+  <div className="relative bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100">
     <div className="p-6">
       <div className="flex flex-col sm:flex-row justify-between">
         <div className="space-y-3">
@@ -99,6 +103,14 @@ const BookingCard = ({ booking }) => (
         </div>
       </div>
     </div>
+    <button className="absolute top-[-15px] right-[-15px] bg-red-500 hover:bg-red-600 text-white px-1 py-1 rounded-lg transition-colors duration-200">
+      <MdDelete
+        size={25}
+        onClick={() => {
+          handleDelete(booking._id);
+        }}
+      />
+    </button>
   </div>
 );
 
@@ -125,6 +137,8 @@ const Booking = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [serviceFilter, setServiceFilter] = useState("");
   const [townshipFilter, setTownshipFilter] = useState("");
+  const [deletedBookingId, setDeletedBookingId] = useState(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -159,6 +173,25 @@ const Booking = () => {
     return matchesSearch && matchesService && matchesTownship;
   });
 
+  const DeleteBooking = async () => {
+    console.log("Delete booking function called");
+    try {
+      const response = await axios.delete(
+        `/api/v1/customer-form/${deletedBookingId}`
+      );
+      console.log("Booking deleted successfully:", response.data);
+      if (response.data.code === 200) {
+        setBookings((prevBookings) =>
+          prevBookings.filter((booking) => booking._id !== deletedBookingId)
+        );
+      }
+      setDeletedBookingId(null);
+      setShowDeleteConfirmation(false);
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -168,7 +201,7 @@ const Booking = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="p-5 container mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
           Booking Requests
@@ -197,7 +230,7 @@ const Booking = () => {
         </div>
       </div>
 
-      <div className="grid gap-4 md:gap-6">
+      <div className="grid gap-6">
         {filteredBookings.length === 0 ? (
           <div className="text-center py-12 bg-gray-50 rounded-lg">
             <p className="text-gray-600">
@@ -206,10 +239,28 @@ const Booking = () => {
           </div>
         ) : (
           filteredBookings.map((booking) => (
-            <BookingCard key={booking._id} booking={booking} />
+            <BookingCard
+              key={booking._id}
+              booking={booking}
+              handleDelete={() => {
+                setDeletedBookingId(booking._id);
+                setShowDeleteConfirmation(true);
+                // console.log(booking._id);
+              }}
+            />
           ))
         )}
       </div>
+
+      {/* {showDeleteConfirmation && ( */}
+      <ConfirmationModal
+        isVisible={showDeleteConfirmation}
+        onConfirm={DeleteBooking}
+        onCancel={() => {
+          setShowDeleteConfirmation(false);
+          setDeletedBookingId(null);
+        }}
+      />
     </div>
   );
 };

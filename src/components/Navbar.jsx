@@ -11,8 +11,8 @@ function Navbar() {
   };
 
   const navLinks = [
-    { path: "/dashboard", name: "Home" },
-    { path: "/dashboard/terms", name: "Dashboard" },
+    { path: "/dashboard", name: "Booking" },
+    { path: "/dashboard/terms", name: "Terms" },
   ];
 
   return (

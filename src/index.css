@@ -18,6 +18,24 @@ body {
   color: black;
 }
 
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 5px; /* Width of the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Background of the scrollbar track */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3dbb47; /* Color of the scrollbar thumb */
+  border-radius: 10px; /* Rounded corners for the scrollbar thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3dbb47; /* Color of the scrollbar thumb when hovered */
+}
+
 .header-text {
   @apply text-header md:text-[24px] lg:text-[42px];
   color: "#1C1C1C";
