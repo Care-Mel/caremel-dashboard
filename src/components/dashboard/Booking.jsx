@@ -144,7 +144,7 @@ const Booking = () => {
     const fetchBookings = async () => {
       try {
         const response = await axios.get("api/v1/customer-form");
-        setBookings(response.data.data.customerForms);
+        setBookings(response.data.data.customerForms.reverse());
       } catch (error) {
         console.error("Error fetching bookings:", error);
       } finally {
