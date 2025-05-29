@@ -1,21 +1,18 @@
-import { useState, useEffect } from "react";
-import axios from "../../api/axios";
-import { Link } from "react-router-dom";
+"use client";
+
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { MdDelete } from "react-icons/md";
+import { FaEye } from "react-icons/fa";
 import PropTypes from "prop-types";
-import ConfirmationModal from "../ConfirmationModal";
+import axios from "./../../api/axios.js";
+import filter from "../../assets/filter.svg";
+import { useNavigate } from "react-router-dom";
 
 const SearchBar = ({ onSearch }) => (
-  <div className="relative">
-    <input
-      type="text"
-      placeholder="Search by name, phone, or service..."
-      onChange={(e) => onSearch(e.target.value)}
-      className="w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-    />
+  <div className="relative bg-white flex items-center px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
     <svg
-      className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
+      className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -27,6 +24,12 @@ const SearchBar = ({ onSearch }) => (
         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
       />
     </svg>
+    <input
+      type="text"
+      placeholder="Search by name, phone, or service..."
+      onChange={(e) => onSearch(e.target.value)}
+      className="w-full ml-10 focus:outline-none"
+    />
   </div>
 );
 
@@ -34,21 +37,67 @@ SearchBar.propTypes = {
   onSearch: PropTypes.func.isRequired,
 };
 
+const ServiceFilter = ({ services, selectedService, onServiceChange }) => (
+  <div className="mb-6 border-b border-gray-200">
+    <div className="flex space-x-8 overflow-x-auto">
+      <button
+        onClick={() => onServiceChange("")}
+        className={`pb-3 px-1 text-sm font-medium whitespace-nowrap transition-colors duration-200 relative ${
+          selectedService === ""
+            ? "text-gray-900 border-b-2 border-green-500"
+            : "text-gray-500 hover:text-gray-700"
+        }`}
+      >
+        All Services
+        {selectedService === "" && (
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500"></div>
+        )}
+      </button>
+      {services.map((service) => (
+        <button
+          key={service}
+          onClick={() => onServiceChange(service)}
+          className={`pb-3 px-1 text-sm font-medium whitespace-nowrap transition-colors duration-200 relative flex items-center ${
+            selectedService === service
+              ? "text-gray-900 border-b-2 border-green-500"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          {service}
+          {selectedService !== service && (
+            <span className="ml-2 w-2 h-2 bg-green-500 rounded-full"></span>
+          )}
+          {selectedService === service && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500"></div>
+          )}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+ServiceFilter.propTypes = {
+  services: PropTypes.arrayOf(PropTypes.string).isRequired,
+  selectedService: PropTypes.string.isRequired,
+  onServiceChange: PropTypes.func.isRequired,
+};
+
 const FilterDropdown = ({ options, value, onChange, label }) => (
-  <select
-    value={value}
-    onChange={(e) => onChange(e.target.value)}
-    className="px-3 py-2 w-full rounded-lg border focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-  >
-    <option value="" disabled>
-      {label}
-    </option>
-    {options.map((option) => (
-      <option key={option} value={option}>
-        {option}
-      </option>
-    ))}
-  </select>
+  <div className="px-3 py-2 flex gap-2 items-center  w-full text-primary rounded-lg border bg-white">
+    <img src={filter} alt="filter" />
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="bg-transparent focus:outline-none appearance-none px-2"
+    >
+      <option value="">{label}</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  </div>
 );
 
 FilterDropdown.propTypes = {
@@ -58,92 +107,177 @@ FilterDropdown.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-const BookingCard = ({ booking, handleDelete }) => (
-  <div className="relative bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100">
-    <div className="p-6">
-      <div className="flex flex-col sm:flex-row justify-between">
-        <div className="space-y-3">
-          <div className="flex items-center space-x-3">
-            <h3 className="text-md md:text-lg font-semibold text-gray-800">
-              {booking.name}
-            </h3>
-            <span className="px-2 py-1 text-center text-xs font-medium rounded-full bg-green-100 text-green-800">
-              {booking.service}
-            </span>
-          </div>
-
-          <div className="space-y-2 text-sm text-gray-600">
-            <p className="flex items-center">
-              <PhoneIcon className="w-4 h-4 mr-2" />
-              {booking.phoneNumber}
-            </p>
-            <p className="flex items-center">
-              <LocationIcon className="w-4 h-4 mr-2" />
-              {booking.township}
-            </p>
-            <p className="flex items-center">
-              <CalendarIcon className="w-4 h-4 mr-2" />
-              {format(new Date(booking.startingDate), "MMM dd, yyyy")} -{" "}
-              {format(new Date(booking.endingDate), "MMM dd, yyyy")}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 sm:mt-0 flex flex-col sm:items-end justify-between">
-          <Link
-            to={`/dashboard/bookings/${booking._id}`}
-            className="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors duration-200"
-          >
-            View Details
-            <ArrowIcon className="w-4 h-4 ml-2" />
-          </Link>
-          <div className="mt-4 sm:mt-auto text-sm text-gray-500">
-            Patient: {booking.patientInformation[0].patientName}
-          </div>
-        </div>
-      </div>
+const BookingTable = ({ bookings, handleDelete, handleViewDetails }) => (
+  <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Customer Name
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Phone Number
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+              Address
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Booking Date
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+              Township
+            </th>
+            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {bookings.map((booking) => (
+            <tr
+              key={booking._id}
+              className="hover:bg-gray-50 transition-colors duration-150"
+            >
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex flex-col">
+                  <div className="text-sm font-medium text-gray-900">
+                    {booking.name}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    Patient: {booking.patientInformation[0]?.patientName}
+                  </div>
+                  <div className="mt-1">
+                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                      {booking.service}
+                    </span>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {booking.phoneNumber}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                <div className="max-w-xs truncate">
+                  {booking.address || "N/A"}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <div className="flex flex-col">
+                  <div>
+                    {format(new Date(booking.startingDate), "MMM dd, yyyy")}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    to {format(new Date(booking.endingDate), "MMM dd, yyyy")}
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                {booking.township}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleViewDetails(booking._id)}
+                    className="inline-flex items-center px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-md transition-colors duration-200"
+                  >
+                    <FaEye className="w-3 h-3 mr-1" />
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleDelete(booking._id)}
+                    className="inline-flex items-center px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs rounded-md transition-colors duration-200"
+                  >
+                    <MdDelete className="w-3 h-3 mr-1" />
+                    Remove
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-    <button className="absolute top-[-15px] right-[-15px] bg-red-500 hover:bg-red-600 text-white px-1 py-1 rounded-lg transition-colors duration-200">
-      <MdDelete
-        size={25}
-        onClick={() => {
-          handleDelete(booking._id);
-        }}
-      />
-    </button>
   </div>
 );
 
-BookingCard.propTypes = {
-  booking: PropTypes.shape({
-    _id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    service: PropTypes.string.isRequired,
-    phoneNumber: PropTypes.string.isRequired,
-    township: PropTypes.string.isRequired,
-    startingDate: PropTypes.string.isRequired,
-    endingDate: PropTypes.string.isRequired,
-    patientInformation: PropTypes.arrayOf(
-      PropTypes.shape({
-        patientName: PropTypes.string.isRequired,
-      })
-    ).isRequired,
-  }).isRequired,
+BookingTable.propTypes = {
+  bookings: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      service: PropTypes.string.isRequired,
+      phoneNumber: PropTypes.string.isRequired,
+      township: PropTypes.string.isRequired,
+      startingDate: PropTypes.string.isRequired,
+      endingDate: PropTypes.string.isRequired,
+      address: PropTypes.string,
+      patientInformation: PropTypes.arrayOf(
+        PropTypes.shape({
+          patientName: PropTypes.string.isRequired,
+        })
+      ).isRequired,
+    })
+  ).isRequired,
+  handleDelete: PropTypes.func.isRequired,
+  handleViewDetails: PropTypes.func.isRequired,
 };
 
+// Mock data for preview
+// const mockBookings = [
+//   {
+//     _id: "1",
+//     name: "Poe Poe Han Hlaing",
+//     service: "Care",
+//     phoneNumber: "09591131",
+//     township: "Kamayut",
+//     startingDate: "2023-06-04T12:06:00.000Z",
+//     endingDate: "2023-06-10T12:06:00.000Z",
+//     address: "123A Shaw Tharaphi Street Piti",
+//     patientInformation: [{ patientName: "Tun" }],
+//   },
+//   {
+//     _id: "2",
+//     name: "Thunder Oo",
+//     service: "Air Care",
+//     phoneNumber: "09756650952",
+//     township: "Thaketa",
+//     startingDate: "2023-05-25T09:43:00.000Z",
+//     endingDate: "2023-05-30T09:43:00.000Z",
+//     address: "No.5 urban street Aung Thapyay Road 9 gate Botahtaung",
+//     patientInformation: [{ patientName: "Aung" }],
+//   },
+//   {
+//     _id: "3",
+//     name: "Yatanar",
+//     service: "Ethan",
+//     phoneNumber: "09500175343",
+//     township: "Kamayut",
+//     startingDate: "2023-05-23T14:49:00.000Z",
+//     endingDate: "2023-05-28T14:49:00.000Z",
+//     address: "99/31 Baho street 3 Ward Hlaadan near one discount",
+//     patientInformation: [{ patientName: "Ethan" }],
+//   },
+// ];
+
 const Booking = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [serviceFilter, setServiceFilter] = useState("");
   const [townshipFilter, setTownshipFilter] = useState("");
+  const [serviceFilter, setServiceFilter] = useState("");
   const [deletedBookingId, setDeletedBookingId] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  // For a real implementation, uncomment this to fetch data
 
   useEffect(() => {
     const fetchBookings = async () => {
       try {
+        setLoading(true);
         const response = await axios.get("api/v1/customer-form");
+        console.log(response);
         setBookings(response.data.data.customerForms.reverse());
       } catch (error) {
         console.error("Error fetching bookings:", error);
@@ -155,8 +289,9 @@ const Booking = () => {
     fetchBookings();
   }, []);
 
-  const services = [...new Set(bookings.map((booking) => booking.service))];
   const townships = [...new Set(bookings.map((booking) => booking.township))];
+
+  const services = [...new Set(bookings.map((booking) => booking.service))];
 
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch =
@@ -165,13 +300,18 @@ const Booking = () => {
       booking.phoneNumber.includes(searchTerm) ||
       booking.service.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesService =
-      serviceFilter === "" || booking.service === serviceFilter;
     const matchesTownship =
       townshipFilter === "" || booking.township === townshipFilter;
 
-    return matchesSearch && matchesService && matchesTownship;
+    const matchesService =
+      serviceFilter === "" || booking.service === serviceFilter;
+
+    return matchesSearch && matchesTownship && matchesService;
   });
+
+  const handleViewDetails = (bookingId) => {
+    navigate(`/dashboard/bookings/${bookingId}`);
+  };
 
   const DeleteBooking = async () => {
     console.log("Delete booking function called");
@@ -203,23 +343,14 @@ const Booking = () => {
   return (
     <div className="p-5 container mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          Booking Requests
-        </h1>
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-800">Booking Requests</h1>
 
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-12">
-          <div className="col-span-12 lg:col-span-6">
+          <div className="w-full sm:w-80">
             <SearchBar onSearch={setSearchTerm} />
           </div>
-          <div className="col-span-12 md:col-span-6 lg:col-span-3">
-            <FilterDropdown
-              options={services}
-              value={serviceFilter}
-              onChange={setServiceFilter}
-              label="Filter by Service"
-            />
-          </div>
-          <div className="col-span-12 md:col-span-6 lg:col-span-3">
+
+          <div className="w-full sm:w-48">
             <FilterDropdown
               options={townships}
               value={townshipFilter}
@@ -230,93 +361,60 @@ const Booking = () => {
         </div>
       </div>
 
-      <div className="grid gap-6">
-        {filteredBookings.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <p className="text-gray-600">
-              No bookings found matching your criteria
-            </p>
-          </div>
-        ) : (
-          filteredBookings.map((booking) => (
-            <BookingCard
-              key={booking._id}
-              booking={booking}
-              handleDelete={() => {
-                setDeletedBookingId(booking._id);
-                setShowDeleteConfirmation(true);
-                // console.log(booking._id);
-              }}
-            />
-          ))
-        )}
-      </div>
-
-      {/* {showDeleteConfirmation && ( */}
-      <ConfirmationModal
-        isVisible={showDeleteConfirmation}
-        onConfirm={DeleteBooking}
-        onCancel={() => {
-          setShowDeleteConfirmation(false);
-          setDeletedBookingId(null);
-        }}
+      <ServiceFilter
+        services={services}
+        selectedService={serviceFilter}
+        onServiceChange={setServiceFilter}
       />
+
+      {filteredBookings.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <p className="text-gray-600">
+            No bookings found matching your criteria
+          </p>
+        </div>
+      ) : (
+        <BookingTable
+          bookings={filteredBookings}
+          handleDelete={(bookingId) => {
+            setDeletedBookingId(bookingId);
+            setShowDeleteConfirmation(true);
+          }}
+          handleViewDetails={handleViewDetails}
+        />
+      )}
+
+      {/* Simple mock of ConfirmationModal for preview */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">Confirm Deletion</h3>
+            <p className="mb-6">
+              Are you sure you want to delete this booking? This action cannot
+              be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirmation(false);
+                  setDeletedBookingId(null);
+                }}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={DeleteBooking}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-// Icon components
-const PhoneIcon = ({ className }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-  </svg>
-);
-
-const LocationIcon = ({ className }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const CalendarIcon = ({ className }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const ArrowIcon = ({ className }) => (
-  <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path
-      fillRule="evenodd"
-      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-// Add PropTypes for icon components
-PhoneIcon.propTypes = {
-  className: PropTypes.string.isRequired,
-};
-
-LocationIcon.propTypes = {
-  className: PropTypes.string.isRequired,
-};
-
-CalendarIcon.propTypes = {
-  className: PropTypes.string.isRequired,
-};
-
-ArrowIcon.propTypes = {
-  className: PropTypes.string.isRequired,
 };
 
 export default Booking;

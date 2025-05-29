@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Sofia Pro";
-  src: local("CHANGANUNITYPE-BOLD"),
-    url("./assets/fonts/SofiaPro") format("truetype");
+  font-family: "Outfit";
+  src: local("Outfit-Regular"),
+    url("./assets/Fonts/Outfit-Regular.ttf") format("truetype");
 }
 
 html {
@@ -16,6 +16,7 @@ body {
   background-color: white;
   scroll-behavior: smooth;
   color: black;
+  font-family: "Outfit", sans-serif;
 }
 
 /* Custom Scrollbar Styles */
