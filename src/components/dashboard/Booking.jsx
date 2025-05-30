@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { MdDelete } from "react-icons/md";
+import { RiDeleteBin6Line } from "react-icons/ri";
 import { FaEye } from "react-icons/fa";
 import PropTypes from "prop-types";
 import axios from "./../../api/axios.js";
@@ -37,49 +37,78 @@ SearchBar.propTypes = {
   onSearch: PropTypes.func.isRequired,
 };
 
-const ServiceFilter = ({ services, selectedService, onServiceChange }) => (
-  <div className="mb-6 border-b border-gray-200">
-    <div className="flex space-x-8 overflow-x-auto">
-      <button
-        onClick={() => onServiceChange("")}
-        className={`pb-3 px-1 text-sm font-medium whitespace-nowrap transition-colors duration-200 relative ${
-          selectedService === ""
-            ? "text-gray-900 border-b-2 border-green-500"
-            : "text-gray-500 hover:text-gray-700"
-        }`}
-      >
-        All Services
-        {selectedService === "" && (
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500"></div>
-        )}
-      </button>
-      {services.map((service) => (
+const ServiceFilter = ({
+  services,
+  selectedService,
+  onServiceChange,
+  bookings,
+}) => {
+  // Calculate unseen counts for each service
+  const getUnseenCount = (service) => {
+    if (service === "") {
+      // For "All Services", count all unseen bookings
+      return bookings.filter((booking) => !booking.isSeen).length;
+    }
+    return bookings.filter(
+      (booking) => booking.service === service && !booking.isSeen
+    ).length;
+  };
+
+  return (
+    <div className="mb-6 border-b border-gray-200">
+      <div className="flex space-x-8 overflow-x-auto">
         <button
-          key={service}
-          onClick={() => onServiceChange(service)}
+          onClick={() => onServiceChange("")}
           className={`pb-3 px-1 text-sm font-medium whitespace-nowrap transition-colors duration-200 relative flex items-center ${
-            selectedService === service
-              ? "text-gray-900 border-b-2 border-green-500"
+            selectedService === ""
+              ? "text-gray-900"
               : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          {service}
-          {selectedService !== service && (
-            <span className="ml-2 w-2 h-2 bg-green-500 rounded-full"></span>
+          All Services
+          {getUnseenCount("") > 0 && (
+            <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-primary rounded-full">
+              {getUnseenCount("")}
+            </span>
           )}
-          {selectedService === service && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500"></div>
+          {selectedService === "" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#121212]"></div>
           )}
         </button>
-      ))}
+        {services.map((service) => {
+          const unseenCount = getUnseenCount(service);
+          return (
+            <button
+              key={service}
+              onClick={() => onServiceChange(service)}
+              className={`pb-3 px-1 text-sm font-medium whitespace-nowrap transition-colors duration-200 relative flex items-center ${
+                selectedService === service
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {service}
+              {unseenCount > 0 ? (
+                <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-primary rounded-full">
+                  {unseenCount}
+                </span>
+              ) : null}
+              {selectedService === service && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#121212]"></div>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 ServiceFilter.propTypes = {
   services: PropTypes.arrayOf(PropTypes.string).isRequired,
   selectedService: PropTypes.string.isRequired,
   onServiceChange: PropTypes.func.isRequired,
+  bookings: PropTypes.arrayOf(PropTypes.object).isRequired,
 };
 
 const FilterDropdown = ({ options, value, onChange, label }) => (
@@ -107,28 +136,33 @@ FilterDropdown.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
-const BookingTable = ({ bookings, handleDelete, handleViewDetails }) => (
+const BookingTable = ({
+  bookings,
+  handleDelete,
+  handleViewDetails,
+  handleMarkAsSeen,
+}) => (
   <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-4 text-left text-xs font-semibold text-[#121212] uppercase tracking-wider">
               Customer Name
             </th>
-            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-4 text-left text-xs font-semibold text-[#121212] uppercase tracking-wider">
               Phone Number
             </th>
-            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+            <th className="px-6 py-4 text-left text-xs font-semibold text-[#121212] uppercase tracking-wider hidden md:table-cell">
               Address
             </th>
-            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-4 text-left text-xs font-semibold text-[#121212] uppercase tracking-wider">
               Booking Date
             </th>
-            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
+            <th className="px-6 py-4 text-left text-xs font-semibold text-[#121212] uppercase tracking-wider hidden sm:table-cell">
               Township
             </th>
-            <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className="px-6 py-4 text-left text-xs font-semibold text-[#121212] uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -137,7 +171,9 @@ const BookingTable = ({ bookings, handleDelete, handleViewDetails }) => (
           {bookings.map((booking) => (
             <tr
               key={booking._id}
-              className="hover:bg-gray-50 transition-colors duration-150"
+              className={`hover:bg-gray-50 transition-colors duration-150 cursor-pointer ${
+                booking?.isSeen ? "" : "bg-green-50"
+              }`}
             >
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex flex-col">
@@ -147,11 +183,12 @@ const BookingTable = ({ bookings, handleDelete, handleViewDetails }) => (
                   <div className="text-xs text-gray-500">
                     Patient: {booking.patientInformation[0]?.patientName}
                   </div>
-                  <div className="mt-1">
+
+                  {/* <div className="mt-1">
                     <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                       {booking.service}
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -178,17 +215,20 @@ const BookingTable = ({ bookings, handleDelete, handleViewDetails }) => (
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => handleViewDetails(booking._id)}
-                    className="inline-flex items-center px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-md transition-colors duration-200"
+                    onClick={() => {
+                      handleViewDetails(booking._id);
+                      handleMarkAsSeen(booking._id);
+                    }}
+                    className="inline-flex items-center px-4 py-3 bg-primary hover:bg-green-600 text-white text-[14px] rounded-md transition-colors duration-200"
                   >
-                    <FaEye className="w-3 h-3 mr-1" />
+                    <FaEye className="w-4 h-4 mr-3" />
                     View Details
                   </button>
                   <button
                     onClick={() => handleDelete(booking._id)}
-                    className="inline-flex items-center px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs rounded-md transition-colors duration-200"
+                    className="inline-flex items-center px-4 py-3 bg-transparent hover:bg-red-600/20 text-[#E60000] border border-gray-300 text-[14px] rounded-md transition-colors duration-200"
                   >
-                    <MdDelete className="w-3 h-3 mr-1" />
+                    <RiDeleteBin6Line className="w-4 h-4 mr-3" />
                     Remove
                   </button>
                 </div>
@@ -221,6 +261,7 @@ BookingTable.propTypes = {
   ).isRequired,
   handleDelete: PropTypes.func.isRequired,
   handleViewDetails: PropTypes.func.isRequired,
+  handleMarkAsSeen: PropTypes.func.isRequired,
 };
 
 // Mock data for preview
@@ -269,6 +310,22 @@ const Booking = () => {
   const [serviceFilter, setServiceFilter] = useState("");
   const [deletedBookingId, setDeletedBookingId] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  const handleMarkAsSeen = async (bookingId) => {
+    // setBookings((prevBookings) =>
+    //   prevBookings.map((booking) =>
+    //     booking._id === bookingId ? { ...booking, isSeen: true } : booking
+    //   )
+    // );
+    const data = {
+      isSeen: true,
+    };
+    const response = await axios.patch(
+      `/api/v1/customer-form/${bookingId}`,
+      data
+    );
+    console.log(response);
+  };
 
   // For a real implementation, uncomment this to fetch data
 
@@ -341,7 +398,7 @@ const Booking = () => {
   }
 
   return (
-    <div className="p-5 container mx-auto">
+    <div className="py-6 px-4 sm:px-6 lg:px-8">
       <div className="mb-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <h1 className="text-2xl font-bold text-gray-800">Booking Requests</h1>
@@ -365,6 +422,7 @@ const Booking = () => {
         services={services}
         selectedService={serviceFilter}
         onServiceChange={setServiceFilter}
+        bookings={bookings}
       />
 
       {filteredBookings.length === 0 ? (
@@ -381,6 +439,7 @@ const Booking = () => {
             setShowDeleteConfirmation(true);
           }}
           handleViewDetails={handleViewDetails}
+          handleMarkAsSeen={handleMarkAsSeen}
         />
       )}
 

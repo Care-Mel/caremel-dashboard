@@ -1,12 +1,14 @@
 import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "sonner";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [seen, setSeen] = useState(false);
 
-  const username = "caremelmm@gmail.com";
-  const pw = "caremel@2025";
+  const username = import.meta.env.VITE_EMAIL;
+  const pw = import.meta.env.VITE_PASSWORD;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -59,17 +61,22 @@ const LoginPage = () => {
               >
                 Password
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={seen ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
+                <button onClick={() => setSeen(!seen)} className="text-primary">
+                  <div className="absolute right-2 top-1/2 transform -translate-y-[18px]">
+                    {seen ? <FaEye /> : <FaEyeSlash />}
+                  </div>
+                </button>
               </div>
             </div>
 
