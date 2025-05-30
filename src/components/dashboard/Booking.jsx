@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
+import { parse, format } from "date-fns";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { FaEye } from "react-icons/fa";
 import PropTypes from "prop-types";
@@ -136,6 +136,62 @@ FilterDropdown.propTypes = {
   label: PropTypes.string.isRequired,
 };
 
+const formatDateTime = (dateTimeString) => {
+  try {
+    // Remove extra spaces and normalize the format
+    const normalized = dateTimeString.trim().replace(/\s+/g, " ");
+    const parts = normalized.split(" ");
+
+    if (parts.length < 2) {
+      throw new Error("Invalid format");
+    }
+
+    const datePart = parts[0]; // YYYY-MM-DD
+    const timePart = parts[1]; // HH:MM:SS
+    const period = parts[2] || ""; // AM/PM (optional)
+
+    // Parse the date
+    const [year, month, day] = datePart.split("-");
+
+    // Month names array
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    // Get month name (subtract 1 because array is 0-indexed)
+    const monthName = monthNames[Number.parseInt(month) - 1];
+
+    if (!monthName) {
+      throw new Error("Invalid month");
+    }
+
+    // Parse the time
+    const [hours, minutes] = timePart.split(":");
+
+    // Format the result: "Jun 04, 2025  , 02 : 06 PM"
+    const formattedDate = `${monthName} ${day.padStart(2, "0")}, ${year}`;
+    const formattedTime = `${hours.padStart(2, "0")} : ${minutes.padStart(
+      2,
+      "0"
+    )} ${period}`;
+
+    return `${formattedDate}  , ${formattedTime}`;
+  } catch (error) {
+    throw new Error("Please use format: YYYY-MM-DD HH:MM:SS AM/PM");
+  }
+};
+
 const BookingTable = ({
   bookings,
   handleDelete,
@@ -191,7 +247,7 @@ const BookingTable = ({
                   </div> */}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {booking.phoneNumber}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
@@ -199,14 +255,9 @@ const BookingTable = ({
                   {booking.address || "N/A"}
                 </div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <div className="flex flex-col">
-                  <div>
-                    {format(new Date(booking.startingDate), "MMM dd, yyyy")}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    to {format(new Date(booking.endingDate), "MMM dd, yyyy")}
-                  </div>
+                  {formatDateTime(booking.createdAt)}
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
@@ -219,14 +270,14 @@ const BookingTable = ({
                       handleViewDetails(booking._id);
                       handleMarkAsSeen(booking._id);
                     }}
-                    className="inline-flex items-center px-4 py-3 bg-primary hover:bg-green-600 text-white text-[14px] rounded-md transition-colors duration-200"
+                    className="inline-flex items-center px-4 py-2 bg-primary hover:bg-green-600 text-white text-[14px] rounded-md transition-colors duration-200"
                   >
                     <FaEye className="w-4 h-4 mr-3" />
                     View Details
                   </button>
                   <button
                     onClick={() => handleDelete(booking._id)}
-                    className="inline-flex items-center px-4 py-3 bg-transparent hover:bg-red-600/20 text-[#E60000] border border-gray-300 text-[14px] rounded-md transition-colors duration-200"
+                    className="inline-flex items-center px-4 py-2 bg-transparent hover:bg-red-600/20 text-[#E60000] border border-gray-300 text-[14px] rounded-md transition-colors duration-200"
                   >
                     <RiDeleteBin6Line className="w-4 h-4 mr-3" />
                     Remove
@@ -312,11 +363,6 @@ const Booking = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   const handleMarkAsSeen = async (bookingId) => {
-    // setBookings((prevBookings) =>
-    //   prevBookings.map((booking) =>
-    //     booking._id === bookingId ? { ...booking, isSeen: true } : booking
-    //   )
-    // );
     const data = {
       isSeen: true,
     };
@@ -324,7 +370,14 @@ const Booking = () => {
       `/api/v1/customer-form/${bookingId}`,
       data
     );
-    console.log(response);
+    if (response.data.code === 200) {
+      setBookings((prevBookings) =>
+        prevBookings.map((booking) =>
+          booking._id === bookingId ? { ...booking, isSeen: true } : booking
+        )
+      );
+    }
+    // console.log(response);
   };
 
   // For a real implementation, uncomment this to fetch data
@@ -334,7 +387,9 @@ const Booking = () => {
       try {
         setLoading(true);
         const response = await axios.get("api/v1/customer-form");
-        console.log(response);
+        console.log(response.data.data.customerForms[0].createdAt);
+        const date = response.data.data.customerForms[0].createdAt;
+        console.log(formatDateTime(date));
         setBookings(response.data.data.customerForms.reverse());
       } catch (error) {
         console.error("Error fetching bookings:", error);
