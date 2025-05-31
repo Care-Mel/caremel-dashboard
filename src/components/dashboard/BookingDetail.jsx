@@ -144,7 +144,7 @@ const BookingDetail = () => {
                 {status.infectiousDiseaseName && (
                   <InfoItem
                     label="Disease Name"
-                    value={status.infectiousDiseaseName}
+                    value={status.infectiousDiseaseName || "No"}
                   />
                 )}
                 <InfoItem
@@ -153,11 +153,11 @@ const BookingDetail = () => {
                 />
                 <InfoItem
                   label="Mobility Level"
-                  value={status.mobilityLevelDescription}
+                  value={status.mobilityLevelDescription || "N/A"}
                 />
                 <InfoItem
                   label="Chronic Diseases"
-                  value={status.chronicDiseaseName}
+                  value={status.chronicDiseaseName || "No"}
                 />
               </InfoCard>
             ))}
