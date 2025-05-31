@@ -8,6 +8,7 @@ const BookingDetail = () => {
   const { id } = useParams();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
+  console.log(booking);
 
   useEffect(() => {
     const fetchBookingDetail = async () => {
@@ -84,7 +85,7 @@ const BookingDetail = () => {
             Booking ID: <span className="font-bold ms-2">{booking._id}</span>
           </div>
         </div>
-        <div className="flex gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
           <div className="grid gap-6 md:grid-cols-2 w-full lg:w-3/4">
             <InfoCard title="Customer Info">
               <InfoItem label="Customer Name" value={booking.name} />
@@ -163,7 +164,7 @@ const BookingDetail = () => {
           </div>
 
           {booking.additionalNote && (
-            <div className="mt-6lg:mt-0 w-auto lg:w-1/4">
+            <div className="mt-6lg:mt-0 w-full lg:w-1/4">
               <InfoCard title="Additional Notes">
                 <p className="text-gray-700 whitespace-pre-wrap">
                   {booking.additionalNote}
