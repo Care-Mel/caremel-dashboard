@@ -387,10 +387,7 @@ const Booking = () => {
       try {
         setLoading(true);
         const response = await axios.get("api/v1/customer-form");
-        console.log(response.data.data.customerForms[0].createdAt);
-        const date = response.data.data.customerForms[0].createdAt;
-        console.log(formatDateTime(date));
-        setBookings(response.data.data.customerForms.reverse());
+        setBookings(response.data.data.customerForms);
       } catch (error) {
         console.error("Error fetching bookings:", error);
       } finally {
