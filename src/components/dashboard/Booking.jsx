@@ -26,7 +26,7 @@ const SearchBar = ({ onSearch }) => (
     </svg>
     <input
       type="text"
-      placeholder="Search by name, phone, or service..."
+      placeholder="Search Booking"
       onChange={(e) => onSearch(e.target.value)}
       className="w-full ml-10 focus:outline-none"
     />
@@ -457,6 +457,7 @@ const Booking = () => {
 
           <div className="w-full sm:w-80">
             <SearchBar onSearch={setSearchTerm} />
+            {/* <p>You can search booking with customer name or phone number</p> */}
           </div>
 
           <div className="w-full sm:w-48">
@@ -464,7 +465,7 @@ const Booking = () => {
               options={townships}
               value={townshipFilter}
               onChange={setTownshipFilter}
-              label="Filter by Township"
+              label="Township Filter"
             />
           </div>
         </div>

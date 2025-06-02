@@ -120,14 +120,11 @@ const BookingDetail = () => {
             {booking.patientInformation.map((patient) => (
               <InfoCard key={patient._id} title="Patient Info">
                 <InfoItem
-                  label="Care Person Name"
+                  label="Cared Person Name"
                   value={patient.patientName}
                 />
-                <InfoItem label="Care Person Age" value={patient.patientAge} />
-                <InfoItem
-                  label="Care Person Gender"
-                  value={patient.patientGender}
-                />
+                <InfoItem label="Cared Person Age" value={patient.patientAge} />
+                <InfoItem label="Gender" value={patient.patientGender} />
                 <InfoItem
                   label="Religious Affection"
                   value={patient.religious}
