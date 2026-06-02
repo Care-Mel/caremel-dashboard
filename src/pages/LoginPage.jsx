@@ -9,10 +9,15 @@ const LoginPage = () => {
 
   const username = import.meta.env.VITE_EMAIL;
   const pw = import.meta.env.VITE_PASSWORD;
+  const username2 = "kphyusin";
+  const pw2 = "kps247";
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (email === username && password === pw) {
+    if (
+      (email === username && password === pw) ||
+      (email === username2 && password === pw2)
+    ) {
       // Redirect to dashboard
       toast.success("Login successful");
       window.location.href = "/dashboard";
